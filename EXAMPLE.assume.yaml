@@ -1,0 +1,9 @@
+---
+aliases:
+  - alias: "bob"
+    account: 123456789012
+    role: "bucket-creator"
+  - alias: "laura"
+    account: 123456789012
+    role: "lambda-creator"
+
