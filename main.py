@@ -1,8 +1,12 @@
 import boto3
 import click
 import logging
+import os
 import yaml
+import subprocess
+# import pipes
 from pprint import pprint
+from sys import exit
 
 
 def aws_session():
@@ -14,16 +18,26 @@ def aws_session():
         logging.error(f"Failed to create AWS session: {e}")
         exit()
 
-def sts_assume_role(session, alias):
+def sts_assume_role(session, alias_data):
     try:
-        client = session.client("s3")
+        client = session.client("sts")
         try:
-            # assumed_role_temporary_credentials = client.
-            pass
+            sts_credentials = assumed_role_temporary_credentials = client.assume_role(
+                RoleArn = f"arn:aws:iam::{alias_data['account']}:role/{alias_data['role']}",
+                RoleSessionName = f"{alias_data['alias']}-sts-session",
+                ExternalId = f"{alias_data['alias']}-sts-user",
+                DurationSeconds = 43200,
+                Tags = [
+                    {"Key": "disposition", "Value": "assumed-role-user"}
+                ]
+            )
+            return sts_credentials
         except Exception as e:
             logging.error(f"Failed to assume role: {e}")
+            exit()
     except Exception as e:
         logging.error(f"Failed to create STS client: {e}")
+        exit()
     
     
 
@@ -55,6 +69,11 @@ def main(alias, exit, list):
 
     if alias_data:
         pprint(alias_data)
+        # session = aws_session() # Works
+        # sts_credentials = sts_assume_role(session, alias_data) # Works
+        subprocess.run([f"export TESTING={alias_data['alias']}"], shell=True)
+        # print(f"export TESTING={alias_data['alias']}\n")
+        # @BUG Eh, maybe just swap around things in the credentials file.
     else:
         print("Alias not found in YAML file")
         exit()
