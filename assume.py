@@ -3,11 +3,11 @@ import click
 import logging
 import os
 import yaml
-import subprocess
-# import pipes
 from pprint import pprint
 from sys import exit
 
+# logging.basicConfig(filename='/var/log/aws_assume.log', encoding='utf-8', level=logging.ERROR)
+logging.basicConfig(level=logging.DEBUG)
 
 def aws_session():
     # @TODO Test if we already have a set of sessions vars and use them if not overriden
@@ -33,50 +33,55 @@ def sts_assume_role(session, alias_data):
             )
             return sts_credentials
         except Exception as e:
-            logging.error(f"Failed to assume role: {e}")
+            logging.error(f"Failed to assume role: \n{e}")
             exit()
     except Exception as e:
-        logging.error(f"Failed to create STS client: {e}")
+        logging.error(f"Failed to create STS client: \n{e}")
         exit()
     
     
 
 @click.command()
-@click.argument("alias")
-@click.option("--exit", "-x", help="Remove assumed roles from environment")
-@click.option("--list", "-l", help="List aliases")
-def main(alias, exit, list):
+@click.option("--shell", "-s", help="Run from the shell wrapper accepting only the alias", required=False)
+@click.option("--list", "-l", help="List aliases", is_flag=True)
+def main(shell, list):
     '''Assume AWS roles based on preconfigured information in a YAML file.
     '''
+
+    logging.info(f"Received the args: \"{shell}\"")
+
+    # Load the `assume` configuration file
     try:
         with open("EXAMPLE.assume.yaml", "r") as file:
             config_file = file.read()
-            logging.warning(f"Loaded from file = \n{config_file}")
+            logging.info(f"Loaded config file!")
     except Exception as e:
-        logging.error(f"File read error: {e}")
+        logging.error(f"File read error: \n{e}")
         exit()
     
     try:
         aliases = yaml.safe_load(config_file)
+        logging.info(f"Deserialized the YAML!")
     except Exception as e:
         logging.error(f"Yaml load error: {e}")
         exit()
 
-    alias_data = {}
-    for item in aliases["aliases"]:
-        if item["alias"] == alias:
-            alias_data = item
+    if shell:
+        alias_data = {}
+        for item in aliases["aliases"]:
+            if item["alias"] == shell:
+                alias_data = item
 
-    if alias_data:
-        pprint(alias_data)
-        # session = aws_session() # Works
-        # sts_credentials = sts_assume_role(session, alias_data) # Works
-        subprocess.run([f"export TESTING={alias_data['alias']}"], shell=True)
-        # print(f"export TESTING={alias_data['alias']}\n")
-        # @BUG Eh, maybe just swap around things in the credentials file.
-    else:
-        print("Alias not found in YAML file")
-        exit()
+        if alias_data:
+            logging.info(f"\"{shell}\" alias found: {alias_data}")
+            # session = aws_session() # Works
+            # sts_credentials = sts_assume_role(session, alias_data) # Works
+        else:
+            print("Alias not found in YAML file")
+            exit()
+    elif list:
+        for item in aliases["aliases"]:
+            print(item)
 
 
 

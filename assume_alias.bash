@@ -1,0 +1,1 @@
+alias assume="source $HOME/code/aws_tricks/assume-py/assume_wrapper.bash"
