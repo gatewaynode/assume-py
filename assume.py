@@ -3,11 +3,13 @@ import click
 import logging
 import os
 import yaml
+import json
 from pprint import pprint
 from sys import exit
 
 # logging.basicConfig(filename='/var/log/aws_assume.log', encoding='utf-8', level=logging.ERROR)
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 def aws_session():
     # @TODO Test if we already have a set of sessions vars and use them if not overriden
@@ -26,7 +28,7 @@ def sts_assume_role(session, alias_data):
                 RoleArn = f"arn:aws:iam::{alias_data['account']}:role/{alias_data['role']}",
                 RoleSessionName = f"{alias_data['alias']}-sts-session",
                 ExternalId = f"{alias_data['alias']}-sts-user",
-                DurationSeconds = 43200,
+                DurationSeconds = 14400,
                 Tags = [
                     {"Key": "disposition", "Value": "assumed-role-user"}
                 ]
@@ -52,7 +54,7 @@ def main(shell, list):
 
     # Load the `assume` configuration file
     try:
-        with open("EXAMPLE.assume.yaml", "r") as file:
+        with open("assume.yaml", "r") as file:
             config_file = file.read()
             logging.info(f"Loaded config file!")
     except Exception as e:
@@ -74,8 +76,10 @@ def main(shell, list):
 
         if alias_data:
             logging.info(f"\"{shell}\" alias found: {alias_data}")
-            # session = aws_session() # Works
-            # sts_credentials = sts_assume_role(session, alias_data) # Works
+            session = aws_session() # Works
+            sts_credentials = sts_assume_role(session, alias_data) # Works
+            # Then return to the shell wrapper for injection
+            print(json.dumps(sts_credentials, indent=4, default=str)) 
         else:
             print("Alias not found in YAML file")
             exit()
