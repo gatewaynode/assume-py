@@ -3,7 +3,6 @@ import click
 import logging
 import os
 import yaml
-import json
 from pprint import pprint
 from sys import exit
 
@@ -28,7 +27,7 @@ def sts_assume_role(session, alias_data):
                 RoleArn = f"arn:aws:iam::{alias_data['account']}:role/{alias_data['role']}",
                 RoleSessionName = f"{alias_data['alias']}-sts-session",
                 ExternalId = f"{alias_data['alias']}-sts-user",
-                DurationSeconds = 14400,
+                DurationSeconds = 14400, # NOTE: Duration cannot be longer than what the assumed role supports
                 Tags = [
                     {"Key": "disposition", "Value": "assumed-role-user"}
                 ]
@@ -70,16 +69,20 @@ def main(shell, list):
 
     if shell:
         alias_data = {}
+        # Find the given alias in the alias file data
         for item in aliases["aliases"]:
             if item["alias"] == shell:
                 alias_data = item
 
         if alias_data:
             logging.info(f"\"{shell}\" alias found: {alias_data}")
-            session = aws_session() # Works
-            sts_credentials = sts_assume_role(session, alias_data) # Works
+            
+            # Initialize the AWS API session and call assume role for the alias
+            session = aws_session()
+            sts_credentials = sts_assume_role(session, alias_data)
+            
             # Then return to the shell wrapper for injection
-            print(json.dumps(sts_credentials, indent=4, default=str)) 
+            print(f"{sts_credentials['Credentials']['AccessKeyId']},{sts_credentials['Credentials']['SecretAccessKey']},{sts_credentials['Credentials']['SessionToken']}")
         else:
             print("Alias not found in YAML file")
             exit()

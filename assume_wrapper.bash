@@ -1,18 +1,19 @@
-# A little different from what we need for a wrapper
+# This is the shell wrapper for assume, it is required to correctly set the shell environment
+# variables when using assume.  
 if [[ $1 == "exit" ]]; then
     AWS_ACCESS_KEY_ID=""
     AWS_SECRET_ACCESS_KEY=""
     AWS_SESSION_TOKEN=""
+elif [[ $1 == "whoami" ]]; then
+    aws sts get-caller-identity
 elif [ $1 ]; then
-    #  assume_response=$(aws sts assume-role --role-arn "arn:aws:iam::123456789012.:role/sudo-create-s3-buckets --role-session-name BucketBoy")
-    assume_response=$(python3 $HOME/code/aws_tricks/assume-py/assume.py --shell $1) 
+    assume_response=$(python3 $HOME/.local/bin/assume.py --shell $1) 
     if [[ $assume_response == Alias* ]]; then
         echo "ERROR! Alias not found in YAML file: $1"
     else
-        export AWS_ACCESS_KEY_ID=$(echo ${assume_response} | jq ".Credentials.AccessKeyId" | sed 's/"//g')
-        export AWS_SECRET_ACCESS_KEY=$(echo ${assume_response} | jq ".Credentials.SecretAccessKey" | sed 's/"//g')
-        export AWS_SESSION_TOKEN=$(echo ${assume_response} | jq ".Credentials.SessionToken" | sed 's/"//g')
-        echo "Assumed role: $(echo ${assume_response} | jq '.AssumedRoleUser.Arn')"
+        export AWS_ACCESS_KEY_ID=$(echo ${assume_response} | cut -d , -f 1)
+        export AWS_SECRET_ACCESS_KEY=$(echo ${assume_response} | cut -d , -f 2)
+        export AWS_SESSION_TOKEN=$(echo ${assume_response} | cut -d , -f 3)
     fi
 
 else
