@@ -1,1 +1,1 @@
-alias assume="source $HOME/code/aws_tricks/assume-py/assume_wrapper.bash"
+alias assume="source $HOME/.local/bin/assume_wrapper.bash"
