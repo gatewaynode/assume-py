@@ -47,7 +47,7 @@ The idea of this utility is to make the whole process simple, so if you have an 
 {
     "UserId": "EXAMPLE111AAAABBBBCCC",
     "Account": "123456789012",
-    "Arn": "arn:aws:iam::725919002241:user/assume-dev"
+    "Arn": "arn:aws:iam::123456789012:user/assume-dev"
 }
 (env) anon@box:/home/USERNAME/ASSUME_REPO_LOCATION/assume-py$ assume bob
 (env) anon@box:/home/USERNAME/ASSUME_REPO_LOCATION/assume-py$ assume whoami
