@@ -1,9 +1,13 @@
 # This is the shell wrapper for assume, it is required to correctly set the shell environment
-# variables when using assume.  
+# variables when using assume.  It does this by being invoked as `source` and setting the 
+# environment variables for AWS assumed roles.  In the order of operations for AWS CLI and SDK
+# credential use this precedes the `shared_credentials` file, and so the assumed role is used
+# instead of what would have been in that file until the shell is closed or the `exit` command
+# is sent and the vars set to empty strings.
 if [[ $1 == "exit" ]]; then
-    AWS_ACCESS_KEY_ID=""
-    AWS_SECRET_ACCESS_KEY=""
-    AWS_SESSION_TOKEN=""
+    export AWS_ACCESS_KEY_ID=""
+    export AWS_SECRET_ACCESS_KEY=""
+    export AWS_SESSION_TOKEN=""
 elif [[ $1 == "whoami" ]]; then
     aws sts get-caller-identity
 elif [ $1 ]; then
