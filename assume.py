@@ -65,6 +65,16 @@ def read_config(config_file):
         # logging.error(f"Yaml load error: {e}")
         # exit()
 
+def input_password():
+    """
+    Take a hidden user input string, SHA256 hash it, and URL safe base64 encode it.
+    """
+    password = click.prompt("Enter your password: ", hide_input=True, show_default=False, type=str)
+    hash = hashlib.sha256()
+    hash.update(bytes(password, "utf-8"))
+    key = base64.urlsafe_b64encode(hash.digest())
+    return key
+
 def decrypt_config(key, cipher_text):
     """
     This function takes a config file var, `cipher_text` (which is in bytes), and a decryption 
@@ -73,17 +83,25 @@ def decrypt_config(key, cipher_text):
     """
     client = Fernet(key)
     try:
-        plaintext = client.decrypt(cipher_text)
-        return plaintext
+        plaintext_bytes = client.decrypt(cipher_text)
+        try:
+            plaintext = plaintext_bytes.decode("utf-8")
+            return plaintext
+        except Exception as e:
+            logging.error(f"Could not decode the decryption result as UTF-8: {e}")
+            exit()
     except Exception as e:
         logging.error(f"String decryption failed: {e}")
+        exit()
 
 def encrypt_config(key, plain_text):
     client = Fernet(key)
     try:
-        cipher_text = client.encrypt(plain_text)
+        cipher_text = client.encrypt(bytes(plain_text, "utf-8"))
+        return cipher_text
     except Exception as e:
         logging.error(f"String encryption failed: {e}")
+        exit()
 
 def aws_session():
     """
@@ -168,12 +186,17 @@ def main(shell, list, encrypt, decrypt):
         for item in aliases["aliases"]:
             print(item)
     elif encrypt:
+        # Debugging through the process
         config_file = load_config_file()
-        hash = hashlib.sha256()
-        hash.update(b'THIS_IS_A_TEST')
-        key = base64.urlsafe_b64encode(hash.digest())
-        encrypted_config = encrypt_config(key, config_file) # Only accepts bytes, not strings apparently
-        pprint(encrypt_config)
+        print("Encrypt config...")
+        key_1 = input_password()
+        pprint(config_file)
+        encrypted_config = encrypt_config(key_1, config_file)
+        pprint(encrypted_config)
+        print("Decrypt config...")
+        key_2 = input_password()
+        decrypted_config = decrypt_config(key_2, encrypted_config)
+        pprint(decrypted_config)
 
     elif decrypt:
         pass
