@@ -1,4 +1,10 @@
+__pycache__
+__pycache__/*
+.vscode
+.vscode/*
 env
 tests/data
 tests/data/*
 assume.yaml
+.gitignore
+plaintext_assume.yaml

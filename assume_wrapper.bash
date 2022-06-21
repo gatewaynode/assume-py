@@ -8,6 +8,8 @@ if [[ $1 == "exit" ]]; then
     export AWS_ACCESS_KEY_ID=""
     export AWS_SECRET_ACCESS_KEY=""
     export AWS_SESSION_TOKEN=""
+elif [[ $1 == "ls" ]]; then
+    python3 $HOME/.local/bin/assume.py --list
 elif [[ $1 == "whoami" ]]; then
     aws sts get-caller-identity
 elif [ $1 ]; then
