@@ -7,4 +7,6 @@ tests/data
 tests/data/*
 assume.yaml
 .gitignore
-plaintext_assume.yaml
+plaintext_assume.yaml\
+dist
+dist/*

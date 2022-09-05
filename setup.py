@@ -5,7 +5,6 @@ setup(
     author="gatewaynode",
     version="0.1",
     install_requires=[
-        "black",
         "boto3",
         "botocore",
         "cffi",
@@ -27,4 +26,9 @@ setup(
         "tomli",
         "urllib3",
     ],
+    entry_points={
+        'console_scripts': [
+            'assume' = 'assume_py.main:main'
+        ]
+    }
 )
