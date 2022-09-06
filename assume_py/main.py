@@ -18,8 +18,8 @@ import assume_py.config as config
 import assume_py.aws as aws
 
 # logging.basicConfig(filename='/var/log/aws_assume.log', encoding='utf-8', level=logging.ERROR)
-logging.basicConfig(level=logging.DEBUG)
-# logging.basicConfig(level=logging.ERROR)
+# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 
 @click.command()
@@ -29,7 +29,12 @@ logging.basicConfig(level=logging.DEBUG)
     help="Run from the shell wrapper accepting only the alias",
     required=False,
 )
-@click.option("--list", "-l", help="List aliases", is_flag=True)
+@click.option(
+    "--list",
+    "-l",
+    help="List aliases in a way that is pretty rough, just dict iterms from the config file.",
+    is_flag=True,
+)
 @click.option(
     "--encrypt",
     "-e",
@@ -42,21 +47,18 @@ logging.basicConfig(level=logging.DEBUG)
     help="Decrypt a ciphertext YAML configuration file with a password.",
     is_flag=True,
 )
-@click.argument("alias", default = "")
+@click.argument("alias", default="")
 def main(shell, list, encrypt, decrypt, alias):
     """
     Assume AWS roles based on preconfigured information in a YAML file.
     """
 
-    logging.info(f'Received the args: "{shell}"')
+    logging.info(f'Received the args: "{alias}"')
 
     # Load the `assume` configuration file
     conf_path = config.find_or_create_config_file()
     config_data = config.load_config_file(conf_path)
 
-
-    # @TODO This section is getting kind of big, time to think about moving it into it's own function
-    # We try deserializing without encryption first
     if config_data and alias:
         try:
             alias_data = {}
@@ -71,6 +73,8 @@ def main(shell, list, encrypt, decrypt, alias):
                 print(
                     f"{sts_credentials['Credentials']['AccessKeyId']},{sts_credentials['Credentials']['SecretAccessKey']},{sts_credentials['Credentials']['SessionToken']}"
                 )
+            else:
+                print(f"Alias not found in YAML file: {alias}")
         except Exception as e:
             logging.error(f"Yaml file load error: {e}")
             exit()
@@ -86,14 +90,14 @@ def main(shell, list, encrypt, decrypt, alias):
 
             # Initialize the AWS API session and call assume role for the alias
             session = aws.session()
-            sts_credentials =aws.sts_assume_role(session, alias_data)
+            sts_credentials = aws.sts_assume_role(session, alias_data)
 
             # Then return to the shell wrapper for injection
             print(
                 f"{sts_credentials['Credentials']['AccessKeyId']},{sts_credentials['Credentials']['SecretAccessKey']},{sts_credentials['Credentials']['SessionToken']}"
             )
         else:
-            print("Alias not found in YAML file")
+            print(f"Alias not found in YAML file: {alias}")
             exit()
     elif list:
         for item in config_data["aliases"]:

@@ -9,11 +9,11 @@ if [[ $1 == "exit" ]]; then
     export AWS_SECRET_ACCESS_KEY=""
     export AWS_SESSION_TOKEN=""
 elif [[ $1 == "ls" ]]; then
-    python3 $HOME/.local/bin/assume.py --list
+    as --list
 elif [[ $1 == "whoami" ]]; then
     aws sts get-caller-identity
 elif [ $1 ]; then
-    assume_response=$(python3 $HOME/.local/bin/assume.py --shell $1) 
+    assume_response=$(as --shell $1) 
     if [[ $assume_response == Alias* ]]; then
         echo "ERROR! Alias not found in YAML file: $1"
     else

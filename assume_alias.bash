@@ -1,1 +1,1 @@
-alias assume="source $HOME/.local/bin/assume_wrapper.bash"
+alias az="source $HOME/.local/bin/assume_wrapper.bash"
